@@ -2,7 +2,6 @@ import logging
 from aiogram import Bot, Dispatcher, types
 from aiogram.types import ParseMode, InputMediaPhoto, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
-from aiogram.utils import executor
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
