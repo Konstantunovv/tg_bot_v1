@@ -1,12 +1,13 @@
 import logging
+import os
 from aiogram import Bot, Dispatcher, types
 from aiogram.types import ParseMode, InputMediaPhoto, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
-API_TOKEN = '6957723778:AAF8ILIew9fpBS50kdMWvL5CvZktD4LT0Lk'  # Замените на свой токен
-CHAT_ID = -1001824112463  # ID вашего чата
+API_TOKEN = os.getenv("TOKEN")  # Замените на свой токен
+CHAT_ID = os.getenv("CHAT_ID") # ID вашего чата
 
 logging.basicConfig(level=logging.INFO)
 
