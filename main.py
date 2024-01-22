@@ -5,9 +5,10 @@ from aiogram.types import ParseMode, InputMediaPhoto, InlineKeyboardMarkup, Inli
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
+from env import TOKEN,CHAT_ID
 
-API_TOKEN = os.getenv("TOKEN")  # Замените на свой токен
-CHAT_ID = os.getenv("CHAT_ID") # ID вашего чата
+API_TOKEN = TOKEN# Замените на свой токен
+CHAT_ID = -4106502161 # ID вашего чата
 
 logging.basicConfig(level=logging.INFO)
 
@@ -26,25 +27,27 @@ class Form(StatesGroup):
     Confirm = State()
 
 
-
+keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
+keyboard.add(types.KeyboardButton("Прислать накладную"))
 
 
 @dp.message_handler(commands=['start', 'help'])
 async def send_welcome(message: types.Message):
-    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    keyboard.add(types.KeyboardButton("Прислать накладную"))
-
     await message.reply(f"Привет! {message.from_user.first_name} Этот бот поможет вам отправить информацию в другой чат.", reply_markup=keyboard)
-    await message.reply(text="Для начала воспользуйтесь кнопкой 'Прислать накладную'.",
+    await message.reply(text="Для начала воспользуйтесь кнопкой \n'Прислать накладную' \nили \n/next_document",
                            reply_markup=keyboard)
+
+@dp.message_handler(commands=['next_document'], state='*')
+async def send_invoice(message: types.Message, state: FSMContext):
+    await state.finish()
+    await message.reply("Хорошо! Теперь пришлите фотографии накладной (1/2/3), по одной.")
+    await Form.Photos.set()
 
 @dp.message_handler(lambda message: message.text.lower() == 'прислать накладную', state='*')
 async def send_invoice(message: types.Message, state: FSMContext):
     await state.finish()
     await message.reply("Хорошо! Теперь пришлите фотографии накладной (1/2/3), по одной.")
     await Form.Photos.set()
-
-
 @dp.message_handler(commands=['skip'], state=Form.Photos)
 async def skip_photos(message: types.Message, state: FSMContext):
     await message.reply("Вы решили пропустить отправку фотографий. Теперь введите дату в формате 13/04/2022:")
@@ -117,7 +120,7 @@ async def confirm_information(message: types.Message, state: FSMContext):
 
         await message.reply("Информация и фотографии отправлены в другой чат.")
         await state.finish()  # Сброс состояния и данных
-        await message.reply("Для начала воспользуйтесь кнопкой 'Прислать накладную'.")
+        await message.reply(text="Что бы прислать еще наклданую воспользуйтесь кнопкой \n 'Прислать накладную' \nили \n/next_document",reply_markup=keyboard)
 
 
 if __name__ == '__main__':
