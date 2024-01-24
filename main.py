@@ -1,15 +1,18 @@
 import logging
+import os
+
+
 from aiogram import Bot, Dispatcher, types
 from aiogram.types import InputMediaPhoto, ParseMode
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
-API_TOKEN = "6530825419:AAGKU7Fy4w18uzgFzFJ0RVYdMHWQYuDPLLQ"
-CHAT_ID = -1002131377903
-CHAT_ID_meat = 114
-CHAT_ID_MILK_KMK = 113
-CHAT_ID_MILK_AGATA = 112 #
+API_TOKEN = "1"
+CHAT_ID = 1
+CHAT_ID_meat = 1
+CHAT_ID_MILK_KMK = 1
+CHAT_ID_MILK_AGATA = 1
 
 logging.basicConfig(level=logging.INFO)
 
@@ -22,7 +25,6 @@ class Form(StatesGroup):
     Photos = State()
     Date = State()
     InvoiceNumber = State()
-    Supplier = State()
     Location = State()
     Theme = State()
     Amount = State()
@@ -58,7 +60,7 @@ async def send_invoice(message: types.Message, state: FSMContext):
 async def send(message: types.Message):
     msg = message.message_id
     info = message.from_user.id
-    print(msg,info)
+    print(msg, info)
 
 
 @dp.message_handler(
@@ -74,9 +76,7 @@ async def send_invoice(message: types.Message, state: FSMContext):
 
 @dp.message_handler(commands=["skip"], state=Form.Photos)
 async def skip_photos(message: types.Message):
-    await message.reply(
-        "Вы решили пропустить отправку фотографий. Теперь введите дату в формате 13/04/2022:"
-    )
+    await message.reply("Введите дату в формате ДД.ММ.ГГГГ, например:01.01.2023")
     await Form.next()
 
 
@@ -95,7 +95,7 @@ async def process_photos(message: types.Message, state: FSMContext):
             )
         else:
             await message.reply(
-                "Все фотографии приняты. Теперь введите дату в формате 13/04/2022:"
+                "Все фотографии приняты. Введите дату в формате ДД.ММ.ГГГГ, например:01.01.2023"
             )
             await Form.next()
 
@@ -113,15 +113,6 @@ async def process_date(message: types.Message, state: FSMContext):
 async def process_invoice(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data["invoice_number"] = message.text
-
-    await Form.next()
-    await message.reply("Введите поставщика:")
-
-
-@dp.message_handler(state=Form.Supplier)
-async def process_supplier(message: types.Message, state: FSMContext):
-    async with state.proxy() as data:
-        data["supplier"] = message.text
 
     await Form.next()
     await message.reply("Введите точку:")
@@ -167,31 +158,32 @@ async def confirm_information(message: types.Message, state: FSMContext):
 
         info_message = (
             f"Дата: {data['date']}\nНомер накладной: {data['invoice_number']}\n"
-            f"Поставщик: {data['supplier']}\nТочка: {data['location']}\nСумма: {data['amount']}\n"
+            f"Точка: {data['location']}\nСумма: {data['amount']}\n"
             f"Тема: {data['theme']}\n"
         )
 
         media = [InputMediaPhoto(media_id) for media_id in data["photos"]]
         await bot.send_media_group(
-            chat_id=CHAT_ID, media=media,reply_to_message_id=chat_id_theme,
+            chat_id=CHAT_ID,
+            media=media,
+            reply_to_message_id=chat_id_theme,
         )
         await bot.send_message(
-            chat_id=CHAT_ID, text=info_message,
-            parse_mode=ParseMode.MARKDOWN,reply_to_message_id=chat_id_theme,
-
+            chat_id=CHAT_ID,
+            text=info_message,
+            parse_mode=ParseMode.MARKDOWN,
+            reply_to_message_id=chat_id_theme,
         )
 
         await message.reply("Информация и фотографии отправлены в другой чат.")
         await state.finish()  # Сброс состояния и данных
         await message.reply(
-            text="Что бы прислать еще наклданую воспользуйтесь кнопкой \n 'Прислать накладную' \nили \n/next_document",
+            text="Что бы прислать еще наклданую воспользуйтесь кнопкой \n'Прислать накладную' \nили \n/next_document",
             reply_markup=keyboard,
-
         )
 
 
 if __name__ == "__main__":
     from aiogram import executor
-
-    # Запуск бота
     executor.start_polling(dp, skip_updates=True)
+
